@@ -9,89 +9,187 @@ import SwiftUI
 
 struct ContentView: View {
     // MARK: Properties
-    var allGameChoices = ["Rock", "Paper", "Scissor"]
+    @State var allGameChoices = ["Rock", "Paper", "Scissor"]
     var randomNumber = Int.random(in: 0...2)
-    var allOutcomeChoices = ["Win", "Loose"]
-    @State private var selectedOutcomeChoice = "Win"
+    var randomCondition = ["Win", "Loose"].randomElement()
     @State private var selectedPlayerChoice = ""
+    @State private var showingScore = false
+    @State private var outcomeString = ""
+    @State private var currentQuestionNumber = 1
     
     var computerSelectedGameChoiceValue: String {
         return allGameChoices[randomNumber]
     }
     
-    var scoreValue: Int {
+    @State private var scoreValue: Int = 0
+    
+    
+    // MARK: Body
+    var body: some View {
+        NavigationStack {
+            Form {
+                // MARK: Section
+                Section {
+                    HStack {
+                        Text("Computer Choice:")
+                        Spacer()
+                        Text(allGameChoices[randomNumber])
+                            .bold()
+                            .foregroundStyle(Color.blue)
+                    }
+                    
+                    HStack {
+                        Text("You should:")
+                        Spacer()
+                        Text("\(randomCondition ?? "")")
+                            .bold()
+                            .foregroundStyle(.red)
+                    }
+                } header: {
+                    Text("Conditions for the game")
+                }
+                
+                Section {
+                    HStack {
+                        
+                        Button("Rock") {
+                            print("Rock")
+                            checkAnswer("Rock")
+                            showingScore.toggle()
+                        }
+                        .buttonStyle(.borderedProminent)
+                        
+                        
+                        Spacer()
+                        
+                        Button("Paper") {
+                            print("Paper")
+                            checkAnswer("Paper")
+                            showingScore.toggle()
+                        }
+                        .buttonStyle(.borderedProminent)
+                        
+                        
+                        Spacer()
+                        
+                        
+                        Button("Scissor") {
+                            print("Scissor")
+                            checkAnswer("Scissor")
+                            showingScore.toggle()
+                        }
+                        .buttonStyle(.borderedProminent)
+                        
+                        
+                    }
+                    .padding()
+                    .bold()
+                    .foregroundStyle(Color.white)
+                    
+                } header: {
+                    Text("Select your choice")
+                }
+                
+                
+                // MARK: Output section
+                Section {
+                    HStack {
+                        Text("Score:")
+                        Spacer()
+                        Text("\(scoreValue)")
+                            .bold()
+                            .foregroundStyle(.green)
+                    }
+                }
+            }
+            .alert((currentQuestionNumber <= 5) ? "You \(outcomeString)" : "Game over!", isPresented: $showingScore) {
+                Button((currentQuestionNumber <= 5) ? "OK" : "Restart") {
+                    askQuestion()
+                    print(currentQuestionNumber)
+                }
+            } message: {
+                Text("Your score is \(scoreValue)")
+            }
+            
+            .navigationTitle("Rock Paper Scissor")
+        }
+    }
+    
+    func checkAnswer(_ passedValue: String) {
+        selectedPlayerChoice = passedValue
+        if scoreValue < 0 {
+            scoreValue = 0
+        }
+        
         switch computerSelectedGameChoiceValue {
         case "Rock":
             switch selectedPlayerChoice {
             case "Rock":
-                return 0
-                
+                outcomeString = "Draw"
+                break
             case "Paper":
-                return 1
+                scoreValue += 1
+                outcomeString = "Win"
+
                 
             case "Scissor":
-                return -1
+                scoreValue -= 1
+                outcomeString = "Loose"
+
+                
             default:
-                return 0
+                break
             }
             
         case "Paper":
             switch selectedPlayerChoice {
             case "Rock":
-                return -1
+                scoreValue -= 1
+                outcomeString = "Loose"
+
                 
             case "Paper":
-                return 0
+                outcomeString = "Draw"
+                break
                 
             case "Scissor":
-                return 1
+                scoreValue += 1
+                outcomeString = "Win"
+                
             default:
-                return 0
+                break
             }
-
+            
             
         case "Scissor":
             switch selectedPlayerChoice {
             case "Rock":
-                return 1
+                scoreValue += 1
+                outcomeString = "Win"
                 
             case "Paper":
-                return -1
+                scoreValue -= 1
+                outcomeString = "Loose"
                 
             case "Scissor":
-                return 0
+                outcomeString = "Draw"
+                break
+                
             default:
-                return 0
+                break
             }
-
-            
         default:
-            return 0
+            break
+        }
+        
+        if currentQuestionNumber > 5 {
+            currentQuestionNumber = 1
         }
     }
     
-    
-    // MARK: Body
-    var body: some View {
-        VStack {
-            Text(allGameChoices[randomNumber])
-            
-            Picker("Choice", selection: $selectedOutcomeChoice) {
-                ForEach(allOutcomeChoices, id: \.self) {
-                    Text($0)
-                }
-            }
-            
-            Picker("Player Choice", selection: $selectedPlayerChoice) {
-                ForEach(allGameChoices, id: \.self) {
-                    Text($0)
-                }
-            }
-            .pickerStyle(.palette)
-            
-            Text("Score: \(scoreValue)")
-        }
-        .padding()
+    func askQuestion() {
+        currentQuestionNumber += 1
+        allGameChoices.shuffle()
     }
 }
 
